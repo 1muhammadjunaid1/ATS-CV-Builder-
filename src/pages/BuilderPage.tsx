@@ -62,7 +62,7 @@ export default function BuilderPage() {
 <header className="builder-top">
 <button className="back" onClick={() => navigate('/')}>
 <ArrowLeft size={18} /> Templates</button>
-<div className="builder-brand">
+<div className="builder-brand" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
 <FileText size={18} /> CVForge</div>
 <button className="preview-mobile" onClick={() => setPreviewOpen(true)}>Preview</button>
 </header>
