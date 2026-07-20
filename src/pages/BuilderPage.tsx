@@ -150,7 +150,7 @@ export default function BuilderPage() {
 </button>
 <p className="eyebrow">
 <Bot size={15} /> AI assistant</p>
-<h2>Enhance any resume section</h2>
+<h2>Enhance any CV section</h2>
 <label className="field"><span>Section</span><select value={aiTarget} onChange={(e) => { setAiTarget(e.target.value as SectionId); setAiSuggestion('') }}>{sectionIds.map((id) => <option key={id} value={id}>{sectionLabel[id]}</option>)}</select></label>
 <Text label="What should Gemini improve?" value={aiInstruction} onChange={setAiInstruction} placeholder="e.g. Make this stronger for a product manager role" />
 <div className="ai-columns">

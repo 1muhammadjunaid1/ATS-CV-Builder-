@@ -2,31 +2,34 @@ import type { CVData, SectionId } from '../../types/cv'
 
 const dates = (start: string, end: string, current = false) => [start, current ? 'Present' : end].filter(Boolean).join(' – ')
 const skillList = (value: string) => value.split(',').map((item) => item.trim()).filter(Boolean)
-const empty = (children: React.ReactNode) => <div className="r-empty hide-on-print">{children}</div>
-
+const empty = (lines: number[]) => (
+  <div className="skeleton-bars hide-on-print" style={{ display: 'flex', flexDirection: 'column', gap: '9px', padding: '4px 0 8px' }}>
+    {lines.map((w, i) => <div key={i} style={{ height: '11px', width: `${w}%`, backgroundColor: '#eef1f6', borderRadius: '6px' }} />)}
+  </div>
+)
 function Work({ data }: { data: CVData }) {
-  if (!data.experience.some((item) => item.title || item.company)) return empty('Add your work experience')
+  if (!data.experience.some((item) => item.title || item.company)) return empty([40, 100, 85, 90])
   return <>{data.experience.filter((item) => item.title || item.company).map((item) => <div className="r-item work-item" key={item.id}><div className="r-itemhead"><b>{item.title || 'Role title'}{item.company && ` — ${item.company}`}</b><i>{dates(item.startDate, item.endDate, item.current)}</i></div>{item.location && <span className="r-location">{item.location}</span>}{item.bullets.filter(Boolean).map((bullet, index) => <div className="r-bullet" key={index}>• {bullet}</div>)}</div>)}</>
 }
 
 function Education({ data }: { data: CVData }) {
-  if (!data.education.some((item) => item.school || item.degree)) return empty('Add your education')
+  if (!data.education.some((item) => item.school || item.degree)) return empty([50, 30])
   return <>{data.education.filter((item) => item.school || item.degree).map((item) => <div className="r-item education-item" key={item.id}><div className="r-itemhead"><b>{item.school || 'School or university'}</b><i>{dates(item.startDate, item.endDate)}</i></div><div><em>{[item.degree, item.field].filter(Boolean).join(' in ')}</em></div>{item.details && <div>{item.details}</div>}</div>)}</>
 }
 
 function Projects({ data }: { data: CVData }) {
-  if (!data.projects.some((item) => item.name)) return empty('Add projects that show your impact')
+  if (!data.projects.some((item) => item.name)) return empty([45, 100, 85])
   return <>{data.projects.filter((item) => item.name).map((item) => <div className="r-item project-item" key={item.id}><b>{item.name}</b>{item.tools && <span className="r-tools"> · {item.tools}</span>}{item.description && <div>{item.description}</div>}</div>)}</>
 }
 
 function Certifications({ data }: { data: CVData }) {
-  if (!data.certifications.some((item) => item.name || item.issuer)) return empty('Add certifications')
+  if (!data.certifications.some((item) => item.name || item.issuer)) return empty([40])
   return <>{data.certifications.filter((item) => item.name || item.issuer).map((item) => <div className="r-item cert-item" key={item.id}><b>{item.name || 'Certification'}</b>{item.issuer && <span> — {item.issuer}</span>}{item.year && <i>{item.year}</i>}</div>)}</>
 }
 
 function Skills({ data }: { data: CVData }) {
   const groups = [['Technical skills', data.skills.technical], ['Tools & platforms', data.skills.tools], ['Professional strengths', data.skills.soft]].filter(([, value]) => value) as [string, string][]
-  if (!groups.length) return empty('Add skills employers can scan quickly')
+  if (!groups.length) return empty([100, 90, 95])
   return <div className="skills-content">{groups.map(([label, value]) => <p key={label}><b>{label}:</b> {skillList(value).join(' · ')}</p>)}</div>
 }
 
@@ -38,7 +41,7 @@ const labels: Record<Layout, Record<SectionId, string>> = {
 }
 
 function Content({ id, data }: { id: SectionId; data: CVData }) {
-  if (id === 'summary') return data.summary ? <p className="summary-copy">{data.summary}</p> : empty('Write a brief professional summary')
+  if (id === 'summary') return data.summary ? <p className="summary-copy">{data.summary}</p> : empty([100, 85])
   if (id === 'experience') return <Work data={data} />
   if (id === 'education') return <Education data={data} />
   if (id === 'skills') return <Skills data={data} />
