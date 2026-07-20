@@ -29,7 +29,7 @@ export default function AuthModal() {
   const google = async () => { try { setError(''); await signInWithGoogle() } catch (err) { setError(err instanceof Error ? err.message : 'Unable to start Google sign-in.') } }
   if (!open) return null
 
-  return <div className="modal-wrap" role="dialog" aria-modal="true" aria-labelledby="auth-title"><div className="modal auth-modal">
+  return <div className="modal-wrap" style={{ zIndex: 100 }} role="dialog" aria-modal="true" aria-labelledby="auth-title"><div className="modal auth-modal">
     <button className="modal-close" aria-label="Close sign in" onClick={() => setOpen(false)}><X size={18} /></button>
     <p className="eyebrow">AI enhancement</p><h2 id="auth-title">Sign in to use Gemini AI</h2>
     <p>Your CV builder remains private in this browser. Sign-in is only needed for the AI feature.</p>
