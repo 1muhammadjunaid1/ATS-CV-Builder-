@@ -1,9 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Bot, ChevronDown, Clipboard, Download, FileText, Plus, RotateCcw, Sparkles, Trash2, X, Check, AlertTriangle, Sun, Palette, Printer } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bot, ChevronDown, Clipboard, Download, FileText, Plus, Sparkles, Trash2, X, Check, AlertTriangle, Sun, Printer } from 'lucide-react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { useCVStore } from '../store/cvStore'
-import type { Certification, Education, Experience, Project } from '../types/cv'
+import { sectionIds, type Certification, type Education, type Experience, type Project, type SectionId } from '../types/cv'
 import { CVPreview } from '../components/preview/ResumeTheme'
 import { scoreATS } from '../utils/atsScorer'
 import { copyAsPlainText, exportToPDF } from '../utils/pdfExport'
@@ -24,7 +24,7 @@ function ItemControls({ onDelete }: { onDelete: () => void }) { return <button c
 </button> }
 
 export default function BuilderPage() {
-  const navigate = useNavigate(); const { data, setData, step, setStep, clear } = useCVStore(); const [previewOpen, setPreviewOpen] = useState(false); const [confirmClear, setConfirmClear] = useState(false); const [aiOpen, setAiOpen] = useState(false); const [aiSuggestion, setAiSuggestion] = useState(''); const ai = useGeminiAI()
+  const navigate = useNavigate(); const { data, setData, step, setStep, clear } = useCVStore(); const [previewOpen, setPreviewOpen] = useState(false); const [confirmClear, setConfirmClear] = useState(false); const [aiOpen, setAiOpen] = useState(false); const [aiSuggestion, setAiSuggestion] = useState(''); const [aiTarget, setAiTarget] = useState<SectionId>('summary'); const [aiInstruction, setAiInstruction] = useState('Make this more concise and impactful for the target role.'); const ai = useGeminiAI()
   const ats = useMemo(() => scoreATS(data), [data]);
   if (!data.theme) return <Navigate to="/" replace />
   const update = (fn: (current: typeof data) => typeof data) => setData(fn(data))
@@ -38,7 +38,25 @@ export default function BuilderPage() {
   const displayWarnings = currentSectionStatus.warnings.slice(0, 3)
   const displayPasses = currentSectionStatus.passes.slice(0, 3 - displayWarnings.length)
   const sectionWarningsCount = currentSectionStatus.warnings.length
-  const enhanceWithAI = async () => { const suggestion = await ai.enhance(data); if (suggestion) { setAiSuggestion(suggestion); setAiOpen(true) } }
+  const sectionLabel: Record<SectionId, string> = { summary: 'Professional summary', experience: 'Work experience', education: 'Education details', skills: 'Technical skills', projects: 'Project descriptions', certifications: 'Certifications' }
+  const targetContent = (target: SectionId) => {
+    if (target === 'summary') return data.summary
+    if (target === 'experience') return data.experience.map((x) => `${x.title} at ${x.company}: ${x.bullets.join(' ')}`).join('\n')
+    if (target === 'education') return data.education.map((x) => `${x.degree} ${x.field} — ${x.school}. ${x.details}`).join('\n')
+    if (target === 'skills') return [data.skills.technical, data.skills.tools, data.skills.soft].filter(Boolean).join(', ')
+    if (target === 'projects') return data.projects.map((x) => `${x.name}: ${x.description}`).join('\n')
+    return data.certifications.map((x) => `${x.name} — ${x.issuer} (${x.year})`).join('\n')
+  }
+  const applySuggestion = () => update((d) => {
+    if (aiTarget === 'summary') return { ...d, summary: aiSuggestion }
+    if (aiTarget === 'skills') return { ...d, skills: { ...d.skills, technical: aiSuggestion } }
+    if (aiTarget === 'experience' && d.experience.length) return { ...d, experience: d.experience.map((x, i) => i ? x : { ...x, bullets: aiSuggestion.split('\n').map((line) => line.replace(/^[-•]\s*/, '')).filter(Boolean) }) }
+    if (aiTarget === 'education' && d.education.length) return { ...d, education: d.education.map((x, i) => i ? x : { ...x, details: aiSuggestion }) }
+    if (aiTarget === 'projects' && d.projects.length) return { ...d, projects: d.projects.map((x, i) => i ? x : { ...x, description: aiSuggestion }) }
+    if (aiTarget === 'certifications' && d.certifications.length) return { ...d, certifications: d.certifications.map((x, i) => i ? x : { ...x, name: aiSuggestion }) }
+    return d
+  })
+  const enhanceWithAI = async () => { const suggestion = await ai.enhance({ content: targetContent(aiTarget), section: sectionLabel[aiTarget], instruction: aiInstruction, targetRole: data.contact.title, template: data.theme }); if (suggestion) setAiSuggestion(suggestion) }
 
   return <main className="builder">
 <header className="builder-top">
@@ -58,7 +76,8 @@ export default function BuilderPage() {
 <div className="step-count">{step + 1} / {steps.length}</div>
 </div>
 <nav className="steps" aria-label="CV sections">{steps.map((x, i) => <button key={x} className={i === step ? 'active' : i < step ? 'done' : ''} onClick={() => setStep(i)}>
-<span>{i < step ? 'âœ“' : i + 1}</span>{x}</button>)}</nav>
+<span>{i < step ? '✓' : i + 1}</span>{x}</button>)}</nav>
+<div className="mobile-actions"><div><b>ATS Score <span>{ats.score}%</span></b><small>{sectionWarningsCount} warning{sectionWarningsCount !== 1 ? 's' : ''}</small></div><button className="btn-gemini" disabled={ai.usesLeft === 0} onClick={() => { setAiSuggestion(''); setAiOpen(true) }}><Sparkles size={14} /> Gemini AI</button><button onClick={exportToPDF}><Download size={14} /> PDF</button><button onClick={() => window.print()}><Printer size={14} /> Print</button></div>
 <AnimatePresence mode="wait">
 <motion.div key={step} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: .18 }} className="form-area">{step === 0 && <Contact data={data} update={updateContact} />}{step === 1 && <Summary data={data} update={update} openAI={() => setAiOpen(true)} />}{step === 2 && <ExperienceForm data={data} update={update} replace={replaceList} remove={remove} />}{step === 3 && <EducationForm data={data} update={update} replace={replaceList} remove={remove} />}{step === 4 && <Skills data={data} update={update} />}{step === 5 && <ProjectsForm data={data} update={update} replace={replaceList} remove={remove} />}{step === 6 && <CertificationsForm data={data} update={update} replace={replaceList} remove={remove} />}</motion.div>
 </AnimatePresence>
@@ -90,8 +109,8 @@ export default function BuilderPage() {
 <Sun size={16} />
 </button>
 </header>
-<button className="btn-gemini" title={ai.usesLeft === 0 ? 'Daily limit reached — resets at midnight' : undefined} disabled={ai.isLoading || ai.usesLeft === 0} onClick={enhanceWithAI}>
-<Sparkles size={14} /> {ai.isLoading ? 'Enhancing…' : 'Enhance with Gemini AI'}</button>
+<button className="btn-gemini" title={ai.usesLeft === 0 ? 'Daily limit reached — resets at midnight' : undefined} disabled={ai.usesLeft === 0} onClick={() => { setAiSuggestion(''); setAiOpen(true) }}>
+<Sparkles size={14} /> Enhance with Gemini AI</button>
 <small className="ai-uses">AI uses left today: {ai.usesLeft ?? 5}/5</small>{ai.error && <small className="ai-error">{ai.error}</small>}
 <div className="btn-grid">
 <button className="btn-action" onClick={exportToPDF}>
@@ -131,11 +150,13 @@ export default function BuilderPage() {
 </button>
 <p className="eyebrow">
 <Bot size={15} /> AI assistant</p>
-<h2>Enhance your summary</h2>
+<h2>Enhance any resume section</h2>
+<label className="field"><span>Section</span><select value={aiTarget} onChange={(e) => { setAiTarget(e.target.value as SectionId); setAiSuggestion('') }}>{sectionIds.map((id) => <option key={id} value={id}>{sectionLabel[id]}</option>)}</select></label>
+<Text label="What should Gemini improve?" value={aiInstruction} onChange={setAiInstruction} placeholder="e.g. Make this stronger for a product manager role" />
 <div className="ai-columns">
 <div>
 <small>CURRENT</small>
-<p>{data.summary || 'Your current summary will appear here.'}</p>
+<p>{targetContent(aiTarget) || `Add ${sectionLabel[aiTarget].toLowerCase()} content first.`}</p>
 </div>
 <div>
 <small>SUGGESTION</small>
@@ -149,7 +170,7 @@ export default function BuilderPage() {
 </div>
 <div>
 <button className="secondary" onClick={() => setAiOpen(false)}>Discard</button>
-<button className="primary" onClick={() => { update((d) => ({ ...d, summary: aiSuggestion })); setAiOpen(false) }}>Accept suggestion</button>
+{aiSuggestion ? <button className="primary" onClick={() => { applySuggestion(); setAiOpen(false) }}>Apply suggestion</button> : <button className="primary" disabled={ai.isLoading || !targetContent(aiTarget)} onClick={enhanceWithAI}>{ai.isLoading ? 'Enhancing…' : 'Generate suggestion'}</button>}
 </div>
 </div>
 </div>}</main>

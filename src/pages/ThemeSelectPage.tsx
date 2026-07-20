@@ -2,7 +2,7 @@ import { FileText, ArrowRight, Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useCVStore } from '../store/cvStore'
 import { EntryTheme, ExecutiveTheme, ProfessionalTheme } from '../components/preview/ResumeTheme'
-import type { ThemeId } from '../types/cv'
+import { defaultSectionOrders, type ThemeId } from '../types/cv'
 
 const templates: { id: ThemeId; name: string; eyebrow: string; description: string; detail: string }[] = [
   { id: 'entry', name: 'Entry Level', eyebrow: 'Clean and structured', description: 'Perfect for students and recent graduates building their first professional CV.', detail: 'Prioritizes education and foundational skills' },
@@ -29,7 +29,8 @@ function MiniPreview({ id }: { id: ThemeId }) {
       { id: '1', name: 'E-commerce App Redesign', tools: 'Figma, Protopie', description: 'Redesigned the mobile checkout experience, reducing cart abandonment by 15%.', link: '' },
       { id: '2', name: 'Design System V2', tools: 'React, Storybook', description: 'Built an accessible component library adopted by 4 internal engineering teams.', link: '' }
     ], 
-    certifications: [{ id: '1', name: 'Google UX Design Professional', issuer: 'Coursera', year: '2021' }, { id: '2', name: 'Accessibility Advocate', issuer: 'W3C', year: '2022' }] 
+    certifications: [{ id: '1', name: 'Google UX Design Professional', issuer: 'Coursera', year: '2021' }, { id: '2', name: 'Accessibility Advocate', issuer: 'W3C', year: '2022' }],
+    sectionOrder: defaultSectionOrders[id],
   }; 
   return <div className="mini-sheet">{id === 'entry' ? <EntryTheme data={c} /> : id === 'executive' ? <ExecutiveTheme data={c} /> : <ProfessionalTheme data={c} />}</div> 
 }

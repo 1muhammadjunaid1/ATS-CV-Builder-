@@ -20,10 +20,13 @@ export default async function handler(req: any, res: any) {
   const existing = await existingResponse.json() as Array<{ count: number }>
   const count = existing[0]?.count ?? 0
   if (req.method === 'GET') return res.status(200).json({ usesLeft: Math.max(0, LIMIT - count), limit: LIMIT })
-  const summary = typeof req.body?.summary === 'string' ? req.body.summary.trim() : ''
+  const content = typeof req.body?.content === 'string' ? req.body.content.trim() : ''
+  const section = typeof req.body?.section === 'string' ? req.body.section.trim() : 'CV section'
+  const instruction = typeof req.body?.instruction === 'string' ? req.body.instruction.trim() : 'Make it more concise and impactful.'
   const targetRole = typeof req.body?.targetRole === 'string' ? req.body.targetRole.trim() : ''
-  if (!summary) return res.status(400).json({ error: 'Add a professional summary before enhancing it.' })
-  if (summary.length > 4000 || targetRole.length > 300) return res.status(400).json({ error: 'Request is too large.' })
+  const template = typeof req.body?.template === 'string' ? req.body.template.trim() : ''
+  if (!content) return res.status(400).json({ error: `Add content to the ${section} section before enhancing it.` })
+  if (content.length > 4000 || targetRole.length > 300 || instruction.length > 800) return res.status(400).json({ error: 'Request is too large.' })
   if (count >= LIMIT) return res.status(429).json({ error: 'Daily limit reached — resets at midnight.', usesLeft: 0, limit: LIMIT })
 
   // The database function increments only when the count is below LIMIT, making the cap atomic across concurrent requests.
@@ -32,7 +35,7 @@ export default async function handler(req: any, res: any) {
   const newCount = await usageResponse.json() as number
   if (newCount > LIMIT) return res.status(429).json({ error: 'Daily limit reached — resets at midnight.', usesLeft: 0, limit: LIMIT })
 
-  const prompt = `Improve this professional CV summary${targetRole ? ` for a ${targetRole} role` : ''}. Keep it truthful: do not invent experience, metrics, employers, or skills. Return only the improved summary in 3-5 concise, ATS-friendly sentences.\n\nSummary:\n${summary}`
+  const prompt = `Improve the ${section} section of a professional CV${targetRole ? ` for a ${targetRole} role` : ''}. The user requested: ${instruction}. The selected resume layout is ${template || 'standard'}. Keep it truthful: never invent experience, metrics, employers, education, credentials, or skills. Preserve factual details and return only the ready-to-paste improved section text, with no heading or commentary.\n\nCurrent ${section}:\n${content}`
   const gemini = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${encodeURIComponent(geminiKey)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.35, maxOutputTokens: 450 } }) })
   if (!gemini.ok) return res.status(502).json({ error: 'Gemini could not generate an enhancement. Your daily use was reserved; please try again tomorrow.', usesLeft: Math.max(0, LIMIT - newCount), limit: LIMIT })
   const result = await gemini.json()

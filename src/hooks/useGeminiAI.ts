@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { CVData } from '../types/cv'
+import type { ThemeId } from '../types/cv'
 import { useAuth } from './useAuth'
 import { openAuthModal } from '../lib/authModal'
 
@@ -29,22 +29,22 @@ export function useGeminiAI() {
       .catch(() => undefined)
   }, [session])
 
-  const enhance = async (data: CVData): Promise<string | null> => {
+  const enhance = async ({ content, section, instruction, targetRole, template }: { content: string; section: string; instruction: string; targetRole: string; template: ThemeId | null }): Promise<string | null> => {
     if (!session) { openAuthModal(); return null }
     if (usesLeft === 0) return null
     setIsLoading(true); setError(null)
     try {
       // This text is relayed to Gemini for this request only; the app never stores CV data server-side.
-      const response = await fetch('/api/enhance', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({ summary: data.summary, targetRole: data.contact.title }) })
+      const response = await fetch('/api/enhance', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({ content, section, instruction, targetRole, template }) })
       const payload = await readJsonResponse(response)
       if (!response.ok) {
         if (typeof payload.usesLeft === 'number') setUsesLeft(payload.usesLeft)
-        throw new Error(payload.error || 'Unable to enhance your summary. Make sure the Vercel API route is running.')
+        throw new Error(payload.error || 'Unable to enhance this section. Make sure the Vercel API route is running.')
       }
       if (typeof payload.usesLeft === 'number') setUsesLeft(payload.usesLeft)
       if (!payload.text) throw new Error(payload.error || 'The AI service returned an empty response.')
       return payload.text
-    } catch (err) { setError(err instanceof Error ? err.message : 'Unable to enhance your summary.'); return null } finally { setIsLoading(false) }
+    } catch (err) { setError(err instanceof Error ? err.message : 'Unable to enhance this section.'); return null } finally { setIsLoading(false) }
   }
 
   return { enhance, isLoading, usesLeft, error, limit: 5, isAuthenticated: Boolean(session) }

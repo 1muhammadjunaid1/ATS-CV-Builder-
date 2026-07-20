@@ -1,4 +1,11 @@
 export type ThemeId = 'entry' | 'executive' | 'professional'
+export type SectionId = 'summary' | 'experience' | 'education' | 'skills' | 'projects' | 'certifications'
+export const sectionIds: SectionId[] = ['summary', 'experience', 'education', 'skills', 'projects', 'certifications']
+export const defaultSectionOrders: Record<ThemeId, SectionId[]> = {
+  entry: ['summary', 'education', 'skills', 'projects', 'experience', 'certifications'],
+  executive: ['summary', 'experience', 'projects', 'skills', 'education', 'certifications'],
+  professional: ['summary', 'experience', 'education', 'projects', 'skills', 'certifications'],
+}
 
 export interface Experience {
   id: string
@@ -45,6 +52,7 @@ export interface CVData {
   skills: { technical: string; tools: string; soft: string }
   projects: Project[]
   certifications: Certification[]
+  sectionOrder: SectionId[]
 }
 
 export const blankCV: CVData = {
@@ -56,4 +64,5 @@ export const blankCV: CVData = {
   skills: { technical: '', tools: '', soft: '' },
   projects: [],
   certifications: [],
+  sectionOrder: defaultSectionOrders.entry,
 }
