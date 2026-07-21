@@ -1,5 +1,5 @@
 const LIMIT = 5
-const geminiModel = 'gemini-2.5-flash'
+const geminiModel = 'gemini-1.5-flash'
 
 async function releaseReservedUse({ supabaseUrl, headers, userId, date, reservedCount }: { supabaseUrl: string; headers: Record<string, string>; userId: string; date: string; reservedCount: number }) {
   const restoredCount = Math.max(0, reservedCount - 1)
