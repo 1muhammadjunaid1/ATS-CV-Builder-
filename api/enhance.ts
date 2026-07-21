@@ -1,6 +1,16 @@
 const LIMIT = 5
 const geminiModel = 'gemini-2.5-flash'
 
+async function releaseReservedUse({ supabaseUrl, headers, userId, date, reservedCount }: { supabaseUrl: string; headers: Record<string, string>; userId: string; date: string; reservedCount: number }) {
+  const restoredCount = Math.max(0, reservedCount - 1)
+  const response = await fetch(`${supabaseUrl}/rest/v1/usage_limits?user_id=eq.${encodeURIComponent(userId)}&date=eq.${date}&count=eq.${reservedCount}`, {
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify({ count: restoredCount })
+  })
+  return response.ok ? restoredCount : reservedCount
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed.' })
   const geminiKey = process.env.GEMINI_API_KEY
@@ -37,9 +47,15 @@ export default async function handler(req: any, res: any) {
 
   const prompt = `Improve the ${section} section of a professional CV${targetRole ? ` for a ${targetRole} role` : ''}. The user requested: ${instruction}. The selected resume layout is ${template || 'standard'}. Keep it truthful: never invent experience, metrics, employers, education, credentials, or skills. Preserve factual details and return only the ready-to-paste improved section text, with no heading or commentary.\n\nCurrent ${section}:\n${content}`
   const gemini = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${encodeURIComponent(geminiKey)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.35, maxOutputTokens: 450 } }) })
-  if (!gemini.ok) return res.status(502).json({ error: 'Gemini could not generate an enhancement. Your daily use was reserved; please try again tomorrow.', usesLeft: Math.max(0, LIMIT - newCount), limit: LIMIT })
+  if (!gemini.ok) {
+    const restoredCount = await releaseReservedUse({ supabaseUrl, headers, userId: user.id, date, reservedCount: newCount })
+    return res.status(502).json({ error: 'Gemini could not generate an enhancement. Please try again.', usesLeft: Math.max(0, LIMIT - restoredCount), limit: LIMIT })
+  }
   const result = await gemini.json()
   const text = result?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || '').join('').trim()
-  if (!text) return res.status(502).json({ error: 'Gemini returned an empty response.', usesLeft: Math.max(0, LIMIT - newCount), limit: LIMIT })
+  if (!text) {
+    const restoredCount = await releaseReservedUse({ supabaseUrl, headers, userId: user.id, date, reservedCount: newCount })
+    return res.status(502).json({ error: 'Gemini returned an empty response. Please try again.', usesLeft: Math.max(0, LIMIT - restoredCount), limit: LIMIT })
+  }
   return res.status(200).json({ text, usesLeft: Math.max(0, LIMIT - newCount), limit: LIMIT })
 }
