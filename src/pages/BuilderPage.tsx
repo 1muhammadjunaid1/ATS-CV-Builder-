@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Bot, ChevronDown, Clipboard, Download, Plus, Spa
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import Logo from '../components/Logo'
+import AuthButton from '../components/AuthButton'
 import { useCVStore } from '../store/cvStore'
 import { sectionIds, type Certification, type Education, type Experience, type Project, type SectionId } from '../types/cv'
 import { CVPreview } from '../components/preview/ResumeTheme'
@@ -64,6 +65,7 @@ export default function BuilderPage() {
 <button className="back" onClick={() => navigate('/')}>
 <ArrowLeft size={18} /> Templates</button>
 <Logo className="builder-brand" />
+<AuthButton />
 </header>
 <div className="builder-shell">
 <section className="editor">
