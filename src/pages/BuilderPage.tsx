@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Bot, ChevronDown, Clipboard, Download, Plus, Sparkles, Trash2, X, Check, AlertTriangle, Sun, Printer } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bot, ChevronDown, Clipboard, Download, Plus, Sparkles, Trash2, X, Check, AlertTriangle, Sun, Printer, Eye } from 'lucide-react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import Logo from '../components/Logo'
@@ -64,7 +64,6 @@ export default function BuilderPage() {
 <button className="back" onClick={() => navigate('/')}>
 <ArrowLeft size={18} /> Templates</button>
 <Logo className="builder-brand" />
-<button className="preview-mobile" onClick={() => setPreviewOpen(true)}>Preview</button>
 </header>
 <div className="builder-shell">
 <section className="editor">
@@ -77,7 +76,7 @@ export default function BuilderPage() {
 </div>
 <nav className="steps" aria-label="CV sections">{steps.map((x, i) => <button key={x} className={i === step ? 'active' : i < step ? 'done' : ''} onClick={() => setStep(i)}>
 <span>{i < step ? '✓' : i + 1}</span>{x}</button>)}</nav>
-<div className="mobile-actions"><div><b>ATS Score <span>{ats.score}%</span></b><small>{sectionWarningsCount} warning{sectionWarningsCount !== 1 ? 's' : ''}</small></div><button className="btn-gemini" disabled={ai.usesLeft === 0} onClick={() => { setAiSuggestion(''); setAiOpen(true) }}><Sparkles size={14} /> Gemini AI</button><button onClick={exportToPDF}><Download size={14} /> PDF</button><button onClick={() => window.print()}><Printer size={14} /> Print</button></div>
+<div className="mobile-actions"><div><b>ATS Score <span>{ats.score}%</span></b><small>{sectionWarningsCount} warning{sectionWarningsCount !== 1 ? 's' : ''}</small></div><button className="btn-gemini" disabled={ai.usesLeft === 0} onClick={() => { setAiSuggestion(''); setAiOpen(true) }}><Sparkles size={14} /> Gemini AI</button><button onClick={exportToPDF}><Download size={14} /> PDF</button><button onClick={() => window.print()}><Printer size={14} /> Print</button><button onClick={() => setPreviewOpen(true)}><Eye size={14} /> Preview</button></div>
 <AnimatePresence mode="wait">
 <motion.div key={step} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: .18 }} className="form-area">{step === 0 && <Contact data={data} update={updateContact} />}{step === 1 && <Summary data={data} update={update} openAI={() => setAiOpen(true)} />}{step === 2 && <ExperienceForm data={data} update={update} replace={replaceList} remove={remove} />}{step === 3 && <EducationForm data={data} update={update} replace={replaceList} remove={remove} />}{step === 4 && <Skills data={data} update={update} />}{step === 5 && <ProjectsForm data={data} update={update} replace={replaceList} remove={remove} />}{step === 6 && <CertificationsForm data={data} update={update} replace={replaceList} remove={remove} />}</motion.div>
 </AnimatePresence>
