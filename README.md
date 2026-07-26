@@ -1,109 +1,108 @@
-# CVForge 🚀
+# CVForge
 
-**CVForge is a privacy-first, ATS-optimized CV builder designed to help job seekers create professional resumes with confidence. Users can build, preview, and export resumes entirely in their browser without registering an account. The platform features real-time ATS compliance scoring and an intelligent AI writing assistant that polishes professional summaries, work achievements, and project descriptions for maximum hiring impact.**
+CVForge is a browser-based CV builder for creating clean, ATS-friendly resumes. It combines a guided editor, live document preview, ATS feedback, PDF export, authentication, and optional Gemini-powered writing assistance.
 
-## ✨ Features
-- **Privacy-First:** All core editing, theme switching, and PDF exporting happen entirely on the client side (in your browser). Your data is never saved to a database.
-- **Real-Time ATS Scoring:** Get instant feedback on your CV's compatibility with Applicant Tracking Systems to ensure recruiters actually see your application.
-- **Gemini AI Writing Assistant:** Connects to Google's Gemini AI to rewrite your professional summary and bullet points into highly impactful, ATS-friendly sentences.
-- **Multiple Modern Themes:** Switch between clean, minimalist, and ATS-compliant visual styles with a single click.
-- **PDF Export:** Render high-quality PDFs seamlessly.
+## Features
 
-## 🛠️ Tech Stack
-- **Frontend:** React, TypeScript, Vite, Framer Motion, Zustand
-- **Backend (Serverless):** Vercel Functions (`/api/enhance.ts`)
-- **Authentication & Rate Limiting:** Supabase (Auth & PostgreSQL)
-- **AI Integration:** Google Gemini (Gemini 2.5 Flash)
+- Three responsive CV templates for entry-level, executive, and professional profiles
+- Guided editing for contact details, summary, experience, education, skills, projects, and certifications
+- Live CV preview with browser persistence
+- ATS scoring with section-specific feedback
+- PDF export, printing, and plain-text copying
+- Supabase email/password authentication with optional Google sign-in
+- Gemini writing assistance with a five-use daily limit per authenticated user
 
----
+## Technology
 
-## 💻 Local Development Setup
+- React 19 and TypeScript
+- Vite 6
+- Zustand
+- Framer Motion and Lucide React
+- Supabase Auth and PostgreSQL
+- Google Gemini API
+- Vercel serverless functions
+- html2pdf.js
 
-### 1. Basic Setup (Core Features only)
-If you only want to work on the UI, templates, and basic PDF export, **you don't need any environment variables.** 
-```bash
-npm install
-npm run dev
+## Requirements
+
+- A recent Node.js LTS release
+- npm
+- A Supabase project for authentication and AI usage tracking
+- A Google AI Studio API key for Gemini enhancements
+
+The editor, templates, ATS scoring, and local CV storage work without external services. Authentication and AI enhancement require the environment configuration below.
+
+## Local Setup
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Duplicate `.env.example` as `.env`.
+
+3. Add the required environment values.
+
+4. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+Vite serves both the React application and the local `/api/enhance` route. Open the local URL printed in the terminal, normally `http://127.0.0.1:5173`.
+
+## Environment Variables
+
+| Variable | Purpose |
+| --- | --- |
+| `VITE_SUPABASE_URL` | Public Supabase project URL used by the browser |
+| `VITE_SUPABASE_ANON_KEY` | Public Supabase anonymous key |
+| `VITE_ENABLE_GOOGLE_AUTH` | Set to `true` after enabling Google in Supabase |
+| `GEMINI_API_KEY` | Server-only Google Gemini API key |
+| `GEMINI_MODEL` | Gemini model used by the enhancement route |
+| `SUPABASE_URL` | Server-side Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase service role key |
+
+Never expose `GEMINI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` through a `VITE_` variable, and never commit `.env`.
+
+## Supabase Setup
+
+1. Create a Supabase project.
+2. Run [`supabase/usage_limits.sql`](supabase/usage_limits.sql) in the Supabase SQL Editor.
+3. Configure the local and production site URLs under Authentication.
+4. Enable email/password authentication.
+5. Optionally configure the Google provider and set `VITE_ENABLE_GOOGLE_AUTH=true`.
+
+Detailed instructions are available in [`supabase/README.md`](supabase/README.md).
+
+## Available Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the frontend and local API route |
+| `npm run typecheck` | Check the frontend and Vite configuration |
+| `npm run build` | Type-check and create a production build in `dist` |
+| `npm run preview` | Preview the production build locally |
+
+## Project Structure
+
+```text
+api/                         Serverless Gemini enhancement route
+src/components/              Authentication, branding, and CV preview components
+src/hooks/                   Authentication and Gemini hooks
+src/pages/                   Template gallery and CV builder
+src/store/                   Persisted CV state
+src/utils/                   ATS scoring and export utilities
+supabase/                    Database migration and setup guide
+vite.config.ts               Vite and local API configuration
+vercel.json                  Production routing configuration
 ```
 
-### 2. Full Setup (with Gemini AI & Auth)
-To test the AI enhancement and User login locally, you will need keys for Supabase and Google AI Studio.
+## Data and Privacy
 
-1. Create a `.env` file in the root directory by copying `.env.example`:
-   ```bash
-   cp .env.example .env
-   ```
-2. Fill in your `.env` file with the following variables:
-   ```env
-   # Frontend Supabase configuration (No quotes needed)
-   VITE_SUPABASE_URL=https://your-project-id.supabase.co
-   VITE_SUPABASE_ANON_KEY=eyJhbG...
+CV data is stored in the browser through local storage. Supabase stores authentication data and daily AI usage counters. CV text is sent to the serverless enhancement route and Google Gemini only when the user explicitly requests an AI enhancement.
 
-   # Server-only keys (For Vercel Functions)
-   GEMINI_API_KEY=AIzaSy...
-   SUPABASE_URL=https://your-project-id.supabase.co
-   SUPABASE_SERVICE_ROLE_KEY=eyJhbG...
-   ```
-3. Run the app using the **Vercel CLI** (since Vite doesn't run backend API routes natively):
-   ```bash
-   npm install -g vercel
-   vercel dev
-   ```
+## Production Deployment
 
----
-
-## 🗄️ Supabase Database Migration
-To enforce the daily API limit (5 uses/day per user) for the Gemini AI feature, run the following SQL script in your Supabase SQL Editor:
-
-```sql
-create table public.usage_limits (
-  user_id uuid not null,
-  date date not null,
-  count integer not null default 0,
-  primary key (user_id, date)
-);
-
-alter table public.usage_limits enable row level security;
-
-create policy "Users can read their own usage"
-on public.usage_limits for select to authenticated
-using (auth.uid() = user_id);
-
-create policy "Users can insert their own usage"
-on public.usage_limits for insert to authenticated
-with check (auth.uid() = user_id);
-
-create policy "Users can update their own usage"
-on public.usage_limits for update to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
-
-create or replace function public.increment_usage_limit(p_user_id uuid, p_date date)
-returns integer
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare new_count integer;
-begin
-  insert into usage_limits (user_id, date, count) values (p_user_id, p_date, 1)
-  on conflict (user_id, date) do update
-    set count = usage_limits.count + 1
-    where usage_limits.count < 5
-  returning count into new_count;
-
-  if new_count is null then
-    select count into new_count from usage_limits where user_id = p_user_id and date = p_date;
-  end if;
-  return new_count;
-end;
-$$;
-
-revoke all on function public.increment_usage_limit(uuid, date) from public;
-grant execute on function public.increment_usage_limit(uuid, date) to service_role;
-```
-
-## 🚀 Deployment (Vercel)
-1. Deploy to Vercel via GitHub integration.
-2. In **Vercel → Project Settings → Environment Variables**, add the 5 variables from your `.env` file for Production.
-3. Redeploy the project.
+The repository includes a Vercel serverless API route and SPA rewrites. Add all environment variables to the deployment platform, run `npm run build`, and use `dist` as the frontend output directory. Keep all server-only keys restricted to the server environment.

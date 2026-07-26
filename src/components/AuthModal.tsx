@@ -4,6 +4,7 @@ import { AUTH_MODAL_EVENT } from '../lib/authModal'
 import { useAuth } from '../hooks/useAuth'
 
 export default function AuthModal() {
+  const googleAuthEnabled = import.meta.env.VITE_ENABLE_GOOGLE_AUTH === 'true'
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -34,7 +35,7 @@ export default function AuthModal() {
     <p className="eyebrow">AI enhancement</p><h2 id="auth-title">Sign in to use Gemini AI</h2>
     <p>Your CV builder remains private in this browser. Sign-in is only needed for the AI feature.</p>
     {!configured ? <p className="auth-error">Supabase is not configured yet. Add the public environment variables and reload.</p> : <>
-      <button className="google-button" onClick={google}>Continue with Google</button><div className="auth-divider"><span>or</span></div>
+      {googleAuthEnabled && <><button className="google-button" onClick={google}>Continue with Google</button><div className="auth-divider"><span>or</span></div></>}
       <form onSubmit={submit} className="auth-form"><label>Email<input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></label><label>Password<input required minLength={6} type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></label><button className="primary" type="submit">{mode === 'signIn' ? 'Sign in' : 'Create account'}</button></form>
       {error && <p className="auth-error">{error}</p>}{message && <p className="auth-message">{message}</p>}
       <button className="auth-switch" onClick={() => setMode(mode === 'signIn' ? 'signUp' : 'signIn')}>{mode === 'signIn' ? 'Need an account? Sign up' : 'Already have an account? Sign in'}</button>

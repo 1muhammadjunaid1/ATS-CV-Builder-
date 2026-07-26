@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Bot, ChevronDown, Clipboard, Download, FileText, Plus, Sparkles, Trash2, X, Check, AlertTriangle, Sun, Printer } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bot, ChevronDown, Clipboard, Download, Plus, Sparkles, Trash2, X, Check, AlertTriangle, Sun, Printer } from 'lucide-react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useMemo, useState } from 'react'
+import Logo from '../components/Logo'
 import { useCVStore } from '../store/cvStore'
 import { sectionIds, type Certification, type Education, type Experience, type Project, type SectionId } from '../types/cv'
 import { CVPreview } from '../components/preview/ResumeTheme'
@@ -62,8 +63,7 @@ export default function BuilderPage() {
 <header className="builder-top">
 <button className="back" onClick={() => navigate('/')}>
 <ArrowLeft size={18} /> Templates</button>
-<div className="builder-brand" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-<FileText size={18} /> CVForge</div>
+<Logo className="builder-brand" />
 <button className="preview-mobile" onClick={() => setPreviewOpen(true)}>Preview</button>
 </header>
 <div className="builder-shell">
