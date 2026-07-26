@@ -1,5 +1,19 @@
 const LIMIT = 5
-const geminiModel = 'gemini-1.5-flash'
+const defaultGeminiModel = 'gemini-3.6-flash'
+
+async function readGeminiError(response: Response) {
+  try {
+    const payload = await response.json()
+    const status = typeof payload?.error?.status === 'string' ? payload.error.status : ''
+    if (status === 'API_KEY_INVALID') return 'Gemini rejected the API key. Check GEMINI_API_KEY in your environment.'
+    if (status === 'PERMISSION_DENIED') return 'Gemini rejected this request. Make sure the API key can use the Gemini API.'
+    if (status === 'RESOURCE_EXHAUSTED') return 'Gemini quota was exhausted. Check your Google AI billing or quota.'
+    if (status === 'NOT_FOUND') return 'The configured Gemini model is not available for this API key.'
+  } catch {
+    return ''
+  }
+  return ''
+}
 
 async function releaseReservedUse({ supabaseUrl, headers, userId, date, reservedCount }: { supabaseUrl: string; headers: Record<string, string>; userId: string; date: string; reservedCount: number }) {
   const restoredCount = Math.max(0, reservedCount - 1)
@@ -14,6 +28,7 @@ async function releaseReservedUse({ supabaseUrl, headers, userId, date, reserved
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed.' })
   const geminiKey = process.env.GEMINI_API_KEY
+  const geminiModel = process.env.GEMINI_MODEL || defaultGeminiModel
   const supabaseUrl = process.env.SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!geminiKey || !supabaseUrl || !serviceRoleKey) return res.status(500).json({ error: 'Server configuration is incomplete.' })
@@ -37,19 +52,20 @@ export default async function handler(req: any, res: any) {
   const template = typeof req.body?.template === 'string' ? req.body.template.trim() : ''
   if (!content) return res.status(400).json({ error: `Add content to the ${section} section before enhancing it.` })
   if (content.length > 4000 || targetRole.length > 300 || instruction.length > 800) return res.status(400).json({ error: 'Request is too large.' })
-  if (count >= LIMIT) return res.status(429).json({ error: 'Daily limit reached — resets at midnight.', usesLeft: 0, limit: LIMIT })
+  if (count >= LIMIT) return res.status(429).json({ error: 'Daily limit reached - resets at midnight.', usesLeft: 0, limit: LIMIT })
 
   // The database function increments only when the count is below LIMIT, making the cap atomic across concurrent requests.
   const usageResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/increment_usage_limit`, { method: 'POST', headers, body: JSON.stringify({ p_user_id: user.id, p_date: date }) })
   if (!usageResponse.ok) return res.status(500).json({ error: 'Unable to reserve an AI use.' })
   const newCount = await usageResponse.json() as number
-  if (newCount > LIMIT) return res.status(429).json({ error: 'Daily limit reached — resets at midnight.', usesLeft: 0, limit: LIMIT })
+  if (newCount > LIMIT) return res.status(429).json({ error: 'Daily limit reached - resets at midnight.', usesLeft: 0, limit: LIMIT })
 
   const prompt = `Improve the ${section} section of a professional CV${targetRole ? ` for a ${targetRole} role` : ''}. The user requested: ${instruction}. The selected resume layout is ${template || 'standard'}. Keep it truthful: never invent experience, metrics, employers, education, credentials, or skills. Preserve factual details and return only the ready-to-paste improved section text, with no heading or commentary.\n\nCurrent ${section}:\n${content}`
-  const gemini = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${encodeURIComponent(geminiKey)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.35, maxOutputTokens: 450 } }) })
+  const gemini = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${encodeURIComponent(geminiKey)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 450 } }) })
   if (!gemini.ok) {
+    const geminiError = await readGeminiError(gemini)
     const restoredCount = await releaseReservedUse({ supabaseUrl, headers, userId: user.id, date, reservedCount: newCount })
-    return res.status(502).json({ error: 'Gemini could not generate an enhancement. Please try again.', usesLeft: Math.max(0, LIMIT - restoredCount), limit: LIMIT })
+    return res.status(502).json({ error: geminiError || 'Gemini could not generate an enhancement. Please try again.', usesLeft: Math.max(0, LIMIT - restoredCount), limit: LIMIT })
   }
   const result = await gemini.json()
   const text = result?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || '').join('').trim()
