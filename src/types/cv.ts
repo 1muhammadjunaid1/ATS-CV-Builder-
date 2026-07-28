@@ -45,7 +45,7 @@ export interface Certification {
 
 export interface CVData {
   theme: ThemeId | null
-  contact: { fullName: string; title: string; email: string; phone: string; location: string; linkedin: string; website: string }
+  contact: { fullName: string; title: string; email: string; phone: string; location: string; linkedin: string; website: string; github: string }
   summary: string
   experience: Experience[]
   education: Education[]
@@ -57,7 +57,7 @@ export interface CVData {
 
 export const blankCV: CVData = {
   theme: null,
-  contact: { fullName: '', title: '', email: '', phone: '', location: '', linkedin: '', website: '' },
+  contact: { fullName: '', title: '', email: '', phone: '', location: '', linkedin: '', website: '', github: '' },
   summary: '',
   experience: [],
   education: [],

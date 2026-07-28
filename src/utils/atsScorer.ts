@@ -6,7 +6,7 @@ const verbs = ['achieved', 'built', 'created', 'delivered', 'designed', 'develop
 
 export function scoreATS(data: CVData): ATSResult {
   const c = data.contact
-  const contact = [c.fullName, c.email, c.phone, c.location, c.linkedin || c.website].filter(Boolean).length * 4
+  const contact = [c.fullName, c.email, c.phone, c.location, c.linkedin || c.website || c.github].filter(Boolean).length * 4
   const sections = (data.summary.length > 50 ? 5 : 0) + (data.experience.length ? 5 : 0) + (data.education.length ? 5 : 0) + ([data.skills.technical, data.skills.tools, data.skills.soft].join(',').split(',').filter(Boolean).length > 3 ? 5 : 0)
   const bulletText = [...data.experience.flatMap((x) => x.bullets), ...data.projects.map((x) => x.description)].join(' ')
   const words = `${data.summary} ${bulletText}`.trim().split(/\s+/).filter(Boolean).length
@@ -29,7 +29,7 @@ export function scoreATS(data: CVData): ATSResult {
       passes: [
         c.fullName && c.title ? 'Clear professional identity established' : '',
         c.email && c.phone ? 'Essential contact methods provided' : '',
-        c.linkedin || c.website ? 'Professional online presence included' : ''
+        c.linkedin || c.website || c.github ? 'Professional online presence included' : ''
       ].filter(Boolean)
     },
     Summary: {

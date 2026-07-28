@@ -184,7 +184,8 @@ function Contact({ data, update }: any) { const c = data.contact; return <div cl
 <Field label="Phone" value={c.phone} onChange={(v) => update('phone', v)} placeholder="+92 300 0000000" />
 <Field label="Location" value={c.location} onChange={(v) => update('location', v)} placeholder="Karachi, Pakistan" />
 <Field label="LinkedIn" value={c.linkedin} onChange={(v) => update('linkedin', v)} placeholder="linkedin.com/in/alex" />
-<Field label="Portfolio / GitHub" value={c.website} onChange={(v) => update('website', v)} placeholder="alexmorgan.dev" />
+<Field label="Portfolio" value={c.website} onChange={(v) => update('website', v)} placeholder="alexmorgan.dev" />
+<Field label="GitHub" value={c.github} onChange={(v) => update('github', v)} placeholder="github.com/alexmorgan" />
 </div> }
 function Summary({ data, update }: any) { return <div>
 <div className="section-note">

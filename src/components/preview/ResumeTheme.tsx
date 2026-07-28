@@ -55,7 +55,7 @@ function Sections({ data, layout }: { data: CVData; layout: Layout }) {
 
 function Contact({ data, centered = false }: { data: CVData; centered?: boolean }) {
   const c = data.contact
-  const values = [c.location, c.phone, c.email, c.linkedin, c.website].filter(Boolean)
+  const values = [c.location, c.phone, c.email, c.linkedin, c.website, c.github].filter(Boolean)
   return <div className={`contact ${centered ? 'contact-centered' : ''}`}>{values.map((value, index) => <span key={index}>{value}</span>)}</div>
 }
 

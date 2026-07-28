@@ -25,7 +25,7 @@ function MiniPreview({ id }: { id: ThemeId }) {
   const isEntryPreview = id === 'entry'
   const c = { 
     theme: id, 
-    contact: { fullName: 'Alex Morgan', title: 'Product Designer', email: 'hello@alex.com', phone: '555-0100', location: 'New York, NY', linkedin: 'in/alex', website: '' }, 
+    contact: { fullName: 'Alex Morgan', title: 'Product Designer', email: 'hello@alex.com', phone: '555-0100', location: 'New York, NY', linkedin: 'in/alex', website: '', github: '' }, 
     summary: isEntryPreview
       ? 'Early-career product designer focused on accessible interfaces, thoughtful research, and clear visual systems.'
       : 'Creative and detail-oriented product designer with 4 years of experience building intuitive user interfaces. Passionate about accessibility, responsive design, and creating systems that scale gracefully across platforms.',
