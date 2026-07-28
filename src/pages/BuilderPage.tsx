@@ -26,7 +26,17 @@ function ItemControls({ onDelete }: { onDelete: () => void }) { return <button c
 </button> }
 
 export default function BuilderPage() {
-  const navigate = useNavigate(); const { data, setData, step, setStep, clear } = useCVStore(); const [previewOpen, setPreviewOpen] = useState(false); const [confirmClear, setConfirmClear] = useState(false); const [aiOpen, setAiOpen] = useState(false); const [aiSuggestion, setAiSuggestion] = useState(''); const [aiTarget, setAiTarget] = useState<SectionId>('summary'); const [aiInstruction, setAiInstruction] = useState('Make this more concise and impactful for the target role.'); const ai = useGeminiAI()
+  const navigate = useNavigate(); const { data, setData, step, setStep, clear } = useCVStore(); const [previewOpen, setPreviewOpen] = useState(false); const [confirmClear, setConfirmClear] = useState(false); const [aiOpen, setAiOpen] = useState(false); const [aiSuggestion, setAiSuggestion] = useState(''); const [aiTarget, setAiTarget] = useState<SectionId>('summary'); const [aiInstruction, setAiInstruction] = useState('Make this more concise and impactful for the target role.'); const ai = useGeminiAI(); const [contactError, setContactError] = useState('')
+
+  const handleSetStep = (nextStep: number) => {
+    if (nextStep > 0) {
+      const { fullName, email } = data.contact;
+      if (!fullName.trim()) { setContactError('Full name is required'); setStep(0); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setContactError('Valid email is required'); setStep(0); return; }
+    }
+    setContactError('');
+    setStep(nextStep);
+  }
   const ats = useMemo(() => scoreATS(data), [data]);
   if (!data.theme) return <Navigate to="/" replace />
   const update = (fn: (current: typeof data) => typeof data) => setData(fn(data))
@@ -76,16 +86,16 @@ export default function BuilderPage() {
 </div>
 <div className="step-count">{step + 1} / {steps.length}</div>
 </div>
-<nav className="steps" aria-label="CV sections">{steps.map((x, i) => <button key={x} className={i === step ? 'active' : i < step ? 'done' : ''} onClick={() => setStep(i)}>
+<nav className="steps" aria-label="CV sections">{steps.map((x, i) => <button key={x} className={i === step ? 'active' : i < step ? 'done' : ''} onClick={() => handleSetStep(i)}>
 <span>{i < step ? '✓' : i + 1}</span>{x}</button>)}</nav>
 <div className="mobile-actions"><div><b>ATS Score <span>{ats.score}%</span></b><small>{sectionWarningsCount} warning{sectionWarningsCount !== 1 ? 's' : ''}</small></div><button className="btn-gemini" disabled={ai.usesLeft === 0} onClick={() => { setAiSuggestion(''); setAiOpen(true) }}><Sparkles size={14} /> Gemini AI</button><button onClick={exportToPDF}><Download size={14} /> PDF</button><button onClick={() => window.print()}><Printer size={14} /> Print</button><button onClick={() => setPreviewOpen(true)}><Eye size={14} /> Preview</button></div>
 <AnimatePresence mode="wait">
-<motion.div key={step} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: .18 }} className="form-area">{step === 0 && <Contact data={data} update={updateContact} />}{step === 1 && <Summary data={data} update={update} openAI={() => setAiOpen(true)} />}{step === 2 && <ExperienceForm data={data} update={update} replace={replaceList} remove={remove} />}{step === 3 && <EducationForm data={data} update={update} replace={replaceList} remove={remove} />}{step === 4 && <Skills data={data} update={update} />}{step === 5 && <ProjectsForm data={data} update={update} replace={replaceList} remove={remove} />}{step === 6 && <CertificationsForm data={data} update={update} replace={replaceList} remove={remove} />}</motion.div>
+<motion.div key={step} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: .18 }} className="form-area">{step === 0 && <Contact data={data} update={updateContact} error={contactError} />}{step === 1 && <Summary data={data} update={update} openAI={() => setAiOpen(true)} />}{step === 2 && <ExperienceForm data={data} update={update} replace={replaceList} remove={remove} />}{step === 3 && <EducationForm data={data} update={update} replace={replaceList} remove={remove} />}{step === 4 && <Skills data={data} update={update} />}{step === 5 && <ProjectsForm data={data} update={update} replace={replaceList} remove={remove} />}{step === 6 && <CertificationsForm data={data} update={update} replace={replaceList} remove={remove} />}</motion.div>
 </AnimatePresence>
 <footer className="form-nav">
-<button className="secondary" disabled={step === 0} onClick={() => setStep(step - 1)}>
+<button className="secondary" disabled={step === 0} onClick={() => handleSetStep(step - 1)}>
 <ArrowLeft size={16} /> Back</button>
-<button className="primary" onClick={() => setStep(Math.min(steps.length - 1, step + 1))}>{step === steps.length - 1 ? 'Done' : 'Continue'} <ArrowRight size={16} />
+<button className="primary" onClick={() => handleSetStep(Math.min(steps.length - 1, step + 1))}>{step === steps.length - 1 ? 'Done' : 'Continue'} <ArrowRight size={16} />
 </button>
 </footer>
 </section>
@@ -177,16 +187,16 @@ export default function BuilderPage() {
 </div>}</main>
 }
 
-function Contact({ data, update }: any) { const c = data.contact; return <div className="form-grid">
-<Field label="Full name" value={c.fullName} onChange={(v) => update('fullName', v)} placeholder="Alex Morgan" />
+function Contact({ data, update, error }: any) { const c = data.contact; return <div>{error && <div style={{ color: '#e11d48', fontSize: '14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}><AlertTriangle size={14} />{error}</div>}<div className="form-grid">
+<Field label="Full name *" value={c.fullName} onChange={(v) => update('fullName', v)} placeholder="Alex Morgan" />
 <Field label="Target role" value={c.title} onChange={(v) => update('title', v)} placeholder="Product Designer" />
-<Field label="Email" type="email" value={c.email} onChange={(v) => update('email', v)} placeholder="alex@email.com" />
+<Field label="Email *" type="email" value={c.email} onChange={(v) => update('email', v)} placeholder="alex@email.com" />
 <Field label="Phone" value={c.phone} onChange={(v) => update('phone', v)} placeholder="+92 300 0000000" />
 <Field label="Location" value={c.location} onChange={(v) => update('location', v)} placeholder="Karachi, Pakistan" />
 <Field label="LinkedIn" value={c.linkedin} onChange={(v) => update('linkedin', v)} placeholder="linkedin.com/in/alex" />
 <Field label="Portfolio" value={c.website} onChange={(v) => update('website', v)} placeholder="alexmorgan.dev" />
 <Field label="GitHub" value={c.github} onChange={(v) => update('github', v)} placeholder="github.com/alexmorgan" />
-</div> }
+</div></div> }
 function Summary({ data, update }: any) { return <div>
 <div className="section-note">
 <p>Give employers the short version of your professional story.</p>
