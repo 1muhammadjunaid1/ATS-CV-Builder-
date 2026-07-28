@@ -188,8 +188,8 @@ export default function BuilderPage() {
 }
 
 function Contact({ data, update, error }: any) { const c = data.contact; return <div>{error && <div style={{ color: '#e11d48', fontSize: '14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}><AlertTriangle size={14} />{error}</div>}<div className="form-grid">
-<Field label="Full name *" value={c.fullName} onChange={(v) => update('fullName', v)} placeholder="Alex Morgan" />
-<Field label="Target role" value={c.title} onChange={(v) => update('title', v)} placeholder="Product Designer" />
+<Field label="Full Name *" value={c.fullName} onChange={(v) => update('fullName', v)} placeholder="Alex Morgan" />
+<Field label="Target Role" value={c.title} onChange={(v) => update('title', v)} placeholder="Product Designer" />
 <Field label="Email *" type="email" value={c.email} onChange={(v) => update('email', v)} placeholder="alex@email.com" />
 <Field label="Phone" value={c.phone} onChange={(v) => update('phone', v)} placeholder="+92 300 0000000" />
 <Field label="Location" value={c.location} onChange={(v) => update('location', v)} placeholder="Karachi, Pakistan" />
@@ -201,27 +201,27 @@ function Summary({ data, update }: any) { return <div>
 <div className="section-note">
 <p>Give employers the short version of your professional story.</p>
 </div>
-<Text label="Professional summary" value={data.summary} maxLength={600} onChange={(v) => update((d: any) => ({ ...d, summary: v }))} placeholder="Describe your experience, strengths, and the impact you want to make..." />
+<Text label="Professional Summary" value={data.summary} maxLength={600} onChange={(v) => update((d: any) => ({ ...d, summary: v }))} placeholder="Describe your experience, strengths, and the impact you want to make..." />
 </div> }
-function ExperienceForm({ data, update, replace, remove }: any) { const add = () => update((d: any) => ({ ...d, experience: [...d.experience, { id: id(), title: '', company: '', location: '', startDate: '', endDate: '', current: false, bullets: [''] }] })); return <EntryList title="Work experience" note="Include roles, internships, freelance work, or leadership." add="Add experience" onAdd={add}>{data.experience.map((x: Experience, i: number) => <div className="entry-card" key={x.id}>
+function ExperienceForm({ data, update, replace, remove }: any) { const add = () => update((d: any) => ({ ...d, experience: [...d.experience, { id: id(), title: '', company: '', location: '', startDate: '', endDate: '', current: false, bullets: [''] }] })); return <EntryList title="Work Experience" note="Include roles, internships, freelance work, or leadership." add="Add experience" onAdd={add}>{data.experience.map((x: Experience, i: number) => <div className="entry-card" key={x.id}>
 <ItemControls onDelete={() => remove('experience', i)} />
 <div className="form-grid">
 <Field label="Role" value={x.title} onChange={(v) => replace('experience', i, { ...x, title: v })} placeholder="Product Design Intern" />
 <Field label="Company" value={x.company} onChange={(v) => replace('experience', i, { ...x, company: v })} placeholder="Company name" />
 <Field label="Location" value={x.location} onChange={(v) => replace('experience', i, { ...x, location: v })} placeholder="City, Country" />
-<Field label="Start date" value={x.startDate} onChange={(v) => replace('experience', i, { ...x, startDate: v })} placeholder="Jun 2024" />
-<Field label="End date" value={x.endDate} onChange={(v) => replace('experience', i, { ...x, endDate: v })} placeholder="Aug 2025" />
+<Field label="Start Date" value={x.startDate} onChange={(v) => replace('experience', i, { ...x, startDate: v })} placeholder="Jun 2024" />
+<Field label="End Date" value={x.endDate} onChange={(v) => replace('experience', i, { ...x, endDate: v })} placeholder="Aug 2025" />
 </div>
-<Text label="Achievement bullets (one per line)" value={x.bullets.join('\n')} onChange={(v) => replace('experience', i, { ...x, bullets: v.split('\n') })} placeholder="Built a feature that improved..." />
+<Text label="Achievement Bullets (one per line)" value={x.bullets.join('\n')} onChange={(v) => replace('experience', i, { ...x, bullets: v.split('\n') })} placeholder="Built a feature that improved..." />
 </div>)}</EntryList> }
 function EducationForm({ data, update, replace, remove }: any) { const add = () => update((d: any) => ({ ...d, education: [...d.education, { id: id(), school: '', degree: '', field: '', startDate: '', endDate: '', details: '' }] })); return <EntryList title="Education" note="Start with your most recent qualification." add="Add education" onAdd={add}>{data.education.map((x: Education, i: number) => <div className="entry-card" key={x.id}>
 <ItemControls onDelete={() => remove('education', i)} />
 <div className="form-grid">
-<Field label="School or university" value={x.school} onChange={(v) => replace('education', i, { ...x, school: v })} placeholder="University name" />
+<Field label="College / University" value={x.school} onChange={(v) => replace('education', i, { ...x, school: v })} placeholder="University name" />
 <Field label="Degree" value={x.degree} onChange={(v) => replace('education', i, { ...x, degree: v })} placeholder="Bachelor of Science" />
-<Field label="Field of study" value={x.field} onChange={(v) => replace('education', i, { ...x, field: v })} placeholder="Computer Science" />
-<Field label="Start year" value={x.startDate} onChange={(v) => replace('education', i, { ...x, startDate: v })} placeholder="2021" />
-<Field label="End year" value={x.endDate} onChange={(v) => replace('education', i, { ...x, endDate: v })} placeholder="2025" />
+<Field label="Field of Study" value={x.field} onChange={(v) => replace('education', i, { ...x, field: v })} placeholder="Computer Science" />
+<Field label="Start Year" value={x.startDate} onChange={(v) => replace('education', i, { ...x, startDate: v })} placeholder="2021" />
+<Field label="End Year" value={x.endDate} onChange={(v) => replace('education', i, { ...x, endDate: v })} placeholder="2025" />
 </div>
 <Text label="Details" value={x.details} onChange={(v) => replace('education', i, { ...x, details: v })} placeholder="GPA, relevant coursework, honors..." />
 </div>)}</EntryList> }
@@ -230,17 +230,17 @@ function Skills({ data, update }: any) { return <div>
 <p>Separate each skill with a comma so they remain easy to scan.</p>
 </div>
 <div className="form-grid single">
-<Field label="Technical skills" value={data.skills.technical} onChange={(v) => update((d: any) => ({ ...d, skills: { ...d.skills, technical: v } }))} placeholder="JavaScript, Python, SQL, Figma" />
-<Field label="Tools & platforms" value={data.skills.tools} onChange={(v) => update((d: any) => ({ ...d, skills: { ...d.skills, tools: v } }))} placeholder="GitHub, Notion, VS Code" />
-<Field label="Soft skills" value={data.skills.soft} onChange={(v) => update((d: any) => ({ ...d, skills: { ...d.skills, soft: v } }))} placeholder="Communication, Leadership, Research" />
+<Field label="Technical Skills" value={data.skills.technical} onChange={(v) => update((d: any) => ({ ...d, skills: { ...d.skills, technical: v } }))} placeholder="JavaScript, Python, SQL, Figma" />
+<Field label="Tools & Platforms" value={data.skills.tools} onChange={(v) => update((d: any) => ({ ...d, skills: { ...d.skills, tools: v } }))} placeholder="GitHub, Notion, VS Code" />
+<Field label="Soft Skills" value={data.skills.soft} onChange={(v) => update((d: any) => ({ ...d, skills: { ...d.skills, soft: v } }))} placeholder="Communication, Leadership, Research" />
 </div>
 </div> }
 function ProjectsForm({ data, update, replace, remove }: any) { const add = () => update((d: any) => ({ ...d, projects: [...d.projects, { id: id(), name: '', link: '', description: '', tools: '' }] })); return <EntryList title="Projects" note="Show work that demonstrates your strongest relevant skills." add="Add project" onAdd={add}>{data.projects.map((x: Project, i: number) => <div className="entry-card" key={x.id}>
 <ItemControls onDelete={() => remove('projects', i)} />
 <div className="form-grid">
-<Field label="Project name" value={x.name} onChange={(v) => replace('projects', i, { ...x, name: v })} placeholder="Portfolio redesign" />
-<Field label="Tools used" value={x.tools} onChange={(v) => replace('projects', i, { ...x, tools: v })} placeholder="React, Figma" />
-<Field label="Project link" value={x.link} onChange={(v) => replace('projects', i, { ...x, link: v })} placeholder="github.com/..." />
+<Field label="Project Name" value={x.name} onChange={(v) => replace('projects', i, { ...x, name: v })} placeholder="Portfolio redesign" />
+<Field label="Tools Used" value={x.tools} onChange={(v) => replace('projects', i, { ...x, tools: v })} placeholder="React, Figma" />
+<Field label="Project Link" value={x.link} onChange={(v) => replace('projects', i, { ...x, link: v })} placeholder="github.com/..." />
 </div>
 <Text label="Description" value={x.description} onChange={(v) => replace('projects', i, { ...x, description: v })} placeholder="What you built, who it served, and what changed." />
 </div>)}</EntryList> }
