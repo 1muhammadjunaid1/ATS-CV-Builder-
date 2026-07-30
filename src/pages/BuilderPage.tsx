@@ -26,7 +26,7 @@ function ItemControls({ onDelete }: { onDelete: () => void }) { return <button c
 </button> }
 
 export default function BuilderPage() {
-  const navigate = useNavigate(); const { data, setData, step, setStep, clear } = useCVStore(); const [previewOpen, setPreviewOpen] = useState(false); const [confirmClear, setConfirmClear] = useState(false); const [aiOpen, setAiOpen] = useState(false); const [aiSuggestion, setAiSuggestion] = useState(''); const [aiTarget, setAiTarget] = useState<SectionId>('summary'); const [aiInstruction, setAiInstruction] = useState('Make this more concise and impactful for the target role.'); const ai = useGeminiAI(); const [contactError, setContactError] = useState(''); const formAreaRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate(); const { data, setData, step, setStep, clear } = useCVStore(); const [previewOpen, setPreviewOpen] = useState(false); const [confirmClear, setConfirmClear] = useState(false); const [aiOpen, setAiOpen] = useState(false); const [aiSuggestion, setAiSuggestion] = useState(''); const [aiTarget, setAiTarget] = useState<SectionId>('summary'); const sectionInstructions: Record<SectionId, string> = { summary: 'Make this more concise and impactful for the target role.', experience: 'Rewrite these bullet points using strong action verbs and quantifiable achievements.', education: 'Highlight relevant coursework, honors, and academic achievements more clearly.', skills: 'Reorganize and expand these skills to better match modern job descriptions for the target role.', projects: 'Strengthen the project descriptions to emphasize technical impact and business value.', certifications: 'Make the certification names and context clearer and more professional.' }; const [aiInstruction, setAiInstruction] = useState(sectionInstructions['summary']); const ai = useGeminiAI(); const [contactError, setContactError] = useState(''); const formAreaRef = useRef<HTMLDivElement>(null)
 
   const scrollToContactError = () => {
     // Scroll the editor section (or the form area) to the top so the error + fields are visible
@@ -171,7 +171,7 @@ export default function BuilderPage() {
 <p className="eyebrow">
 <Bot size={15} /> AI assistant</p>
 <h2>Enhance any CV section</h2>
-<label className="field"><span>Section</span><select value={aiTarget} onChange={(e) => { setAiTarget(e.target.value as SectionId); setAiSuggestion('') }}>{sectionIds.map((id) => <option key={id} value={id}>{sectionLabel[id]}</option>)}</select></label>
+<label className="field"><span>Section</span><select value={aiTarget} onChange={(e) => { const s = e.target.value as SectionId; setAiTarget(s); setAiSuggestion(''); setAiInstruction(sectionInstructions[s]); }}>{sectionIds.map((id) => <option key={id} value={id}>{sectionLabel[id]}</option>)}</select></label>
 <Text label="What should Gemini improve?" value={aiInstruction} onChange={setAiInstruction} placeholder="e.g. Make this stronger for a product manager role" />
 <div className="ai-columns">
 <div>
