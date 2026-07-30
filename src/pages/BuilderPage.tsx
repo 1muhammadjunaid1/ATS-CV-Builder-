@@ -62,11 +62,21 @@ export default function BuilderPage() {
   const sectionLabel: Record<SectionId, string> = { summary: 'Professional summary', experience: 'Work experience', education: 'Education details', skills: 'Technical skills', projects: 'Project descriptions', certifications: 'Certifications' }
   const targetContent = (target: SectionId) => {
     if (target === 'summary') return data.summary
-    if (target === 'experience') return data.experience.map((x) => `${x.title} at ${x.company}: ${x.bullets.join(' ')}`).join('\n')
-    if (target === 'education') return data.education.map((x) => `${x.degree} ${x.field} — ${x.school}. ${x.details}`).join('\n')
+    if (target === 'experience') {
+      const filled = data.experience.filter((x) => x.title.trim() || x.company.trim() || x.bullets.some((b) => b.trim()))
+      return filled.map((x) => `${x.title} at ${x.company}: ${x.bullets.join(' ')}`).join('\n')
+    }
+    if (target === 'education') {
+      const filled = data.education.filter((x) => x.school.trim() || x.degree.trim() || x.field.trim() || x.details.trim())
+      return filled.map((x) => `${x.degree} ${x.field} — ${x.school}. ${x.details}`).join('\n')
+    }
     if (target === 'skills') return [data.skills.technical, data.skills.tools, data.skills.soft].filter(Boolean).join(', ')
-    if (target === 'projects') return data.projects.map((x) => `${x.name}: ${x.description}`).join('\n')
-    return data.certifications.map((x) => `${x.name} — ${x.issuer} (${x.year})`).join('\n')
+    if (target === 'projects') {
+      const filled = data.projects.filter((x) => x.name.trim() || x.description.trim())
+      return filled.map((x) => `${x.name}: ${x.description}`).join('\n')
+    }
+    const filled = data.certifications.filter((x) => x.name.trim() || x.issuer.trim() || x.year.trim())
+    return filled.map((x) => `${x.name} — ${x.issuer} (${x.year})`).join('\n')
   }
   const applySuggestion = () => update((d) => {
     if (aiTarget === 'summary') return { ...d, summary: aiSuggestion }
