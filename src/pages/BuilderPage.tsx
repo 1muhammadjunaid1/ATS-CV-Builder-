@@ -26,7 +26,7 @@ function ItemControls({ onDelete }: { onDelete: () => void }) { return <button c
 </button> }
 
 export default function BuilderPage() {
-  const navigate = useNavigate(); const { data, setData, step, setStep, clear } = useCVStore(); const [previewOpen, setPreviewOpen] = useState(false); const [confirmClear, setConfirmClear] = useState(false); const [aiOpen, setAiOpen] = useState(false); const [aiSuggestion, setAiSuggestion] = useState(''); const [aiTarget, setAiTarget] = useState<SectionId>('summary'); const sectionInstructions: Record<SectionId, string> = { summary: 'Make this more concise and impactful for the target role.', experience: 'Rewrite these bullet points using strong action verbs and quantifiable achievements.', education: 'Highlight relevant coursework, honors, and academic achievements more clearly.', skills: 'Reorganize and expand these skills to better match modern job descriptions for the target role.', projects: 'Strengthen the project descriptions to emphasize technical impact and business value.', certifications: 'Make the certification names and context clearer and more professional.' }; const [aiInstruction, setAiInstruction] = useState(sectionInstructions['summary']); const ai = useGeminiAI(); const [contactError, setContactError] = useState(''); const formAreaRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate(); const { data, setData, step, setStep, clear } = useCVStore(); const [previewOpen, setPreviewOpen] = useState(false); const [confirmClear, setConfirmClear] = useState(false); const [aiOpen, setAiOpen] = useState(false); const [aiSuggestion, setAiSuggestion] = useState(''); const [aiTarget, setAiTarget] = useState<SectionId>('summary'); const sectionInstructions: Record<SectionId, string> = { summary: 'Make this more concise and impactful for the target role.', experience: 'Rewrite these bullet points using strong action verbs and quantifiable achievements.', education: 'Highlight relevant coursework, honors, and academic achievements more clearly.', skills: 'Reorganize and expand these skills to better match modern job descriptions for the target role.', projects: 'Strengthen the project descriptions to emphasize technical impact and business value.', certifications: 'Make the certification context clearer and more professional.' }; const [aiInstruction, setAiInstruction] = useState(sectionInstructions['summary']); const ai = useGeminiAI(); const [contactError, setContactError] = useState(''); const formAreaRef = useRef<HTMLDivElement>(null)
 
   const scrollToContactError = () => {
     // Scroll the editor section (or the form area) to the top so the error + fields are visible
@@ -42,6 +42,7 @@ export default function BuilderPage() {
       const { fullName, email } = data.contact;
       if (!fullName.trim()) { setContactError('Full name is required'); setStep(0); setTimeout(scrollToContactError, 50); return; }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setContactError('Valid email is required'); setStep(0); setTimeout(scrollToContactError, 50); return; }
+      if (!data.contact.title.trim()) { setContactError('Target role is required'); setStep(0); setTimeout(scrollToContactError, 50); return; }
     }
     setContactError('');
     setStep(nextStep);
@@ -208,7 +209,7 @@ export default function BuilderPage() {
 
 function Contact({ data, update, error }: any) { const c = data.contact; return <div>{error && <div style={{ color: '#e11d48', fontSize: '14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}><AlertTriangle size={14} />{error}</div>}<div className="form-grid">
 <Field label="Full Name *" value={c.fullName} onChange={(v) => update('fullName', v)} placeholder="Alex Morgan" />
-<Field label="Target Role" value={c.title} onChange={(v) => update('title', v)} placeholder="Product Designer" />
+<Field label="Target Role *" value={c.title} onChange={(v) => update('title', v)} placeholder="Product Designer" />
 <Field label="Email *" type="email" value={c.email} onChange={(v) => update('email', v)} placeholder="alex@email.com" />
 <Field label="Phone" value={c.phone} onChange={(v) => update('phone', v)} placeholder="+92 300 0000000" />
 <Field label="Location" value={c.location} onChange={(v) => update('location', v)} placeholder="Karachi, Pakistan" />
